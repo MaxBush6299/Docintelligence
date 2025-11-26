@@ -36,7 +36,7 @@ This document describes the Azure-first architecture for the **Engineering Manua
 ## Azure Resources
 
 - **Function App** (Python + Durable Functions)
-- **Azure Content Understanding** — OCR and document analysis for PDF text extraction
+- **Azure Document Intelligence v4.0** — GA prebuilt-read model with span-based text extraction for PDFs (up to 500 MB on S0 tier)
 - **Blob Storage** containers:
   - `raw-pdfs/` — source PDFs
   - `parsed-pages/{documentId}/` — per-page text JSON
@@ -53,7 +53,7 @@ This document describes the Azure-first architecture for the **Engineering Manua
 
 - **Durability & Reliability:** Automatic checkpointing, retries on activities
 - **Performance:** Fan-out batches (default 32) to balance speed and rate limits
-- **OCR & Text Extraction:** Azure Content Understanding with `prebuilt-documentSearch` analyzer for handling scanned and image-heavy PDFs
+- **OCR & Text Extraction:** Azure Document Intelligence v4.0 with prebuilt-read model using span-based content extraction for accurate text layout preservation
 - **Traceability:** Artifacts stored in Blob + metadata in Cosmos
 - **Extensibility:** Easy to add additional analyzers, routing, legal modes
 - **Security:** Prefer **Managed Identity** + RBAC, store secrets in **Key Vault**

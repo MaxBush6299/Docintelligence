@@ -6,7 +6,7 @@
 - Python **3.10+**
 - Azure Functions Core Tools
 - **Azurite** (local storage emulator)
-- Azure Content Understanding resource (for OCR and document analysis)
+- Azure Document Intelligence resource (S0 tier recommended for files up to 500 MB)
 - (Optional) Docker if you prefer containerized local dev
 
 ## 1) Create a virtual environment
@@ -40,20 +40,22 @@ Edit `local.settings.json`:
     "COSMOS_KEY": "<your-key-or-use-MI>",
     "BLOB_ACCOUNT_URL": "https://<your-storage>.blob.core.windows.net",
     "OPENAI_MAX_CONCURRENCY": "32",
-    "CONTENT_UNDERSTANDING_ENDPOINT": "https://<your-content-understanding>.cognitiveservices.azure.com",
-    "CONTENT_UNDERSTANDING_KEY": "<your-content-understanding-key>"
+    "DOCUMENT_INTELLIGENCE_ENDPOINT": "https://<your-resource>.cognitiveservices.azure.com/",
+    "DOCUMENT_INTELLIGENCE_KEY": "<your-key>"
   }
 }
 ```
 
-### Azure Content Understanding Setup
+### Azure Document Intelligence Setup
 
-The PDF splitting activity uses Azure Content Understanding for OCR and text extraction.
-This enables processing of scanned documents and image-heavy PDFs.
+The PDF splitting activity uses Azure Document Intelligence v4.0 (API version 2024-11-30 GA) for text extraction.
+The prebuilt-read model provides accurate text extraction with span-based content parsing.
 
-1. Create an Azure Content Understanding resource in the Azure Portal
-2. Deploy a model that supports the `prebuilt-documentSearch` analyzer
-3. Copy the endpoint and key to your `local.settings.json`
+1. Create an Azure Document Intelligence resource in the Azure Portal
+   - Choose **S0 tier** for production workloads (supports PDFs up to 500 MB)
+   - Free tier (F0) supports up to 4 MB files
+2. Copy the endpoint and key to your `local.settings.json`
+3. No model deployment needed - prebuilt-read is available out-of-the-box
 
 ## 4) Start services
 

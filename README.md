@@ -1,6 +1,6 @@
 # 📄 Azure Document Intelligence Pipeline
 
-A serverless **Azure Durable Functions** solution for processing PDF documents at scale. The pipeline extracts text, generates AI-powered summaries using **Azure OpenAI**, and persists results to **Azure Blob Storage** and **Azure Cosmos DB**.
+A serverless **Azure Durable Functions** solution for processing PDF documents at scale. The pipeline uses **Azure Document Intelligence** (v4.0 GA) for text extraction with span-based content parsing, generates AI-powered summaries using **Azure OpenAI**, and persists results to **Azure Blob Storage** and **Azure Cosmos DB**.
 
 ![Architecture](./docs/architecture.drawio.svg)
 
@@ -12,7 +12,7 @@ A serverless **Azure Durable Functions** solution for processing PDF documents a
 |---------|-------------|
 | **Serverless & Durable** | Built on Azure Durable Functions with automatic checkpointing and retry |
 | **Fan-out/Fan-in Pattern** | Process pages in parallel batches (default: 32 concurrent) |
-| **OCR & Text Extraction** | Azure Content Understanding with `prebuilt-documentSearch` for scanned/image PDFs |
+| **OCR & Text Extraction** | Azure Document Intelligence v4.0 with `prebuilt-read` model for accurate text extraction from PDFs (supports up to 500 MB on paid tier) |
 | **AI-Powered Summaries** | Per-page one-sentence summaries + multi-paragraph document summary |
 | **Full Audit Trail** | All artifacts persisted to Blob Storage with metadata in Cosmos DB |
 | **Identity-Based Auth** | Uses `DefaultAzureCredential` for Blob, Cosmos, and OpenAI |
@@ -56,7 +56,7 @@ A serverless **Azure Durable Functions** solution for processing PDF documents a
 
 1. **Upload** → Client uploads PDF to `raw-pdfs` container
 2. **Trigger** → HTTP POST to `/api/process-document` starts orchestration
-3. **Split** → `pdf_split` uses Azure Content Understanding for OCR + text extraction → `parsed-pages/`
+3. **Split** → `pdf_split` uses Azure Document Intelligence (prebuilt-read) with span-based extraction for accurate text extraction → `parsed-pages/`
 4. **Summarize Pages** → `page_summary` runs in parallel batches → `summaries/{docId}/pages/`
 5. **Summarize Document** → `doc_summary` creates final summary → `summaries/{docId}.json`
 6. **Report** → `write_report` creates processing report → `reports/{docId}.json`
@@ -79,7 +79,8 @@ dur_func/
 │   ├── storage_utils.py     # Blob Storage operations
 │   ├── cosmos_utils.py      # Cosmos DB operations
 │   ├── openai_utils.py      # Azure OpenAI client
-│   └── content_understanding_utils.py  # Azure Content Understanding API
+│   ├── document_intelligence_utils.py  # Azure Document Intelligence SDK v1.0.0b4
+│   └── content_understanding_utils.py  # Legacy (deprecated)
 ├── tests/                   # Unit tests
 ├── docs/                    # Documentation
 │   ├── architecture.md
@@ -105,8 +106,8 @@ dur_func/
 - Azure resources:
   - Storage Account with containers: `raw-pdfs`, `summaries`, `reports`
   - Cosmos DB account with database and `documents` container
-  - Azure OpenAI deployment
-  - Azure Content Understanding resource with deployed model
+  - Azure OpenAI deployment (GPT-4 or GPT-4o recommended)
+  - Azure Document Intelligence resource (S0 tier recommended for files up to 500 MB)
 
 ### 1. Clone and Setup
 
@@ -138,6 +139,8 @@ Create `local.settings.json`:
   "Values": {
     "AzureWebJobsStorage__accountName": "<storage-account-name>",
     "FUNCTIONS_WORKER_RUNTIME": "python",
+    "DOCUMENT_INTELLIGENCE_ENDPOINT": "https://<your-resource>.cognitiveservices.azure.com/",
+    "DOCUMENT_INTELLIGENCE_KEY": "<your-key>",
     "AZURE_OPENAI_ENDPOINT": "https://<your-openai>.openai.azure.com/",
     "AZURE_OPENAI_DEPLOYMENT": "gpt-4",
     "AZURE_OPENAI_API_KEY": "<your-api-key>",
