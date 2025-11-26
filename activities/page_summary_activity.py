@@ -12,7 +12,9 @@ def _build_page_summary_prompt(sentences: int) -> str:
         "You are a helpful assistant that summarizes a single page of a PDF document. "
         f"Write a concise summary in exactly {sentences} sentences. "
         "Focus only on the content in the provided page text. "
-        "Do not mention that this is a summary or refer to the instructions."
+        "Return ONLY the summary text with no additional commentary, explanations, or meta-text. "
+        "Do not include phrases like 'Here is the summary' or 'This page discusses'. "
+        "Start directly with the summary content."
     )
 
 
@@ -66,13 +68,13 @@ def page_summary_impl(document_id: str, page_number: int) -> Dict[str, Any]:
     sentences = _get_page_summary_sentences()
     prompt = _build_page_summary_prompt(sentences)
 
-    max_completion_tokens = 512
     max_attempts = 5
     last_error: Exception | None = None
 
     for attempt in range(1, max_attempts + 1):
         try:
-            summary = openai_utils.summarize_text(text, prompt, max_completion_tokens=max_completion_tokens)
+            # No max_completion_tokens limit - let the model generate the full response
+            summary = openai_utils.summarize_text(text, prompt)
             result = {
                 "documentId": document_id,
                 "page": page_number,

@@ -10,7 +10,10 @@ def _build_doc_summary_prompt() -> str:
     return (
         "You are a helpful assistant that writes a multi-paragraph summary of a document "
         "based on per-page summaries. Combine the information into a coherent narrative "
-        "without explicitly referring to pages. Aim for clear, well-structured paragraphs."
+        "without explicitly referring to pages. Aim for clear, well-structured paragraphs. "
+        "Return ONLY the summary text with no additional commentary, explanations, or meta-text. "
+        "Do not include phrases like 'Here is the summary' or 'This document discusses'. "
+        "Start directly with the summary content."
     )
 
 
@@ -42,7 +45,9 @@ def doc_summary_impl(document_id: str, page_summaries: List[Dict[str, Any]]) -> 
     prompt = _build_doc_summary_prompt()
 
     try:
-        final_summary = openai_utils.summarize_text(joined_summaries, prompt, max_completion_tokens=1024)
+        # Set a reasonable token limit for document summaries (4096 tokens ~ 3000 words)
+        # This prevents excessively long generation times for large documents
+        final_summary = openai_utils.summarize_text(joined_summaries, prompt)
     except Exception as exc:  # pragma: no cover - failure path covered via tests if added later
         logging.error("doc_summary_impl failed for document %s: %s", document_id, exc)
         raise

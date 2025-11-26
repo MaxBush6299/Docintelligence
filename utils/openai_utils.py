@@ -26,8 +26,14 @@ def _get_client() -> AzureOpenAI:
 	return _client
 
 
-def summarize_text(text: str, prompt: str, max_completion_tokens: int = 512) -> str:
-	"""Summarize the given text using Azure OpenAI."""
+def summarize_text(text: str, prompt: str, max_completion_tokens: int | None = None) -> str:
+	"""Summarize the given text using Azure OpenAI.
+	
+	Args:
+		text: The text to summarize
+		prompt: The system prompt for summarization
+		max_completion_tokens: Optional token limit. If None, no limit is applied.
+	"""
 
 	if not isinstance(text, str) or not text:
 		raise ValueError("text must be a non-empty string")
@@ -38,14 +44,20 @@ def summarize_text(text: str, prompt: str, max_completion_tokens: int = 512) -> 
 
 	client = _get_client()
 
-	response: Any = client.chat.completions.create(
-		model=deployment,
-		messages=[
+	# Build request parameters
+	params = {
+		"model": deployment,
+		"messages": [
 			{"role": "system", "content": prompt},
 			{"role": "user", "content": text},
 		],
-		max_completion_tokens=max_completion_tokens,
-	)
+	}
+	
+	# Only add max_completion_tokens if specified
+	if max_completion_tokens is not None:
+		params["max_completion_tokens"] = max_completion_tokens
+
+	response: Any = client.chat.completions.create(**params)
 
 	# Debug: log response details
 	import logging
@@ -54,6 +66,15 @@ def summarize_text(text: str, prompt: str, max_completion_tokens: int = 512) -> 
 	
 	content = response.choices[0].message.content
 	logger.info(f"OpenAI content: {repr(content)[:200]}")
+	
+	# Check for length-related issues
+	if response.choices[0].finish_reason == "length":
+		if max_completion_tokens is not None:
+			logger.warning(f"OpenAI hit token limit (max_completion_tokens={max_completion_tokens})")
+		else:
+			logger.warning("OpenAI hit model's maximum token limit")
+		if not content:
+			logger.error("finish_reason='length' but content is empty - this is unexpected")
 	
 	return (content or "").strip()
 
