@@ -2,7 +2,7 @@
 
 A serverless **Azure Durable Functions** solution for processing PDF documents at scale. The pipeline uses **Azure Document Intelligence** (v4.0 GA) for text extraction with span-based content parsing, generates AI-powered summaries using **Azure OpenAI**, and persists results to **Azure Blob Storage** and **Azure Cosmos DB**.
 
-![Architecture](./docs/architecture.drawio.svg)
+![Architecture](./docs/architecture.png)
 
 ---
 
