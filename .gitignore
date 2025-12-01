@@ -46,3 +46,16 @@ __pycache__/
 __blobstorage__
 __queuestorage__
 __azurite_db*__.json
+
+# Generated markdown summaries
+*_summary.md
+
+# Diagnostic/test scripts
+debug_*.py
+diagnose_*.py
+test_*.py
+!tests/test_*.py
+
+# Temporary files
+temp_*.json
+*.tmp

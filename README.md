@@ -88,7 +88,10 @@ dur_func/
 │   ├── function-flow.md
 │   ├── setup.md
 │   ├── deployment.md
+│   ├── prompts.md
 │   └── troubleshooting.md
+├── regenerate_summaries.py  # Standalone summary regeneration tool
+├── format_summary_markdown.py  # Markdown formatter for document summaries
 ├── host.json                # Functions host configuration
 ├── local.settings.json      # Local development settings
 └── requirements.txt         # Python dependencies
@@ -299,10 +302,69 @@ func azure functionapp publish <function-app-name>
 
 ---
 
+## 🔧 Helper Tools
+
+### Summary Regeneration (`regenerate_summaries.py`)
+
+Standalone tool to regenerate summaries without reprocessing PDFs. Useful for:
+- Fixing empty summaries caused by token limit issues
+- Re-running summaries with updated prompts
+- Selective page regeneration
+
+**Usage:**
+```bash
+# Regenerate all summaries for a document
+python regenerate_summaries.py timken-v5
+
+# Regenerate specific page range
+python regenerate_summaries.py timken-v5 --pages 1-50
+
+# Dry-run to check what would be processed
+python regenerate_summaries.py timken-v5 --dry-run
+
+# Process all documents
+python regenerate_summaries.py --all
+```
+
+**Features:**
+- Parallel processing (32 concurrent workers by default)
+- Progress tracking with success/skipped/failed counts
+- Direct activity calls (bypasses orchestrator for faster execution)
+- Supports partial regeneration with `--pages` flag
+
+### Markdown Formatter (`format_summary_markdown.py`)
+
+Converts document summaries from blob storage into well-formatted markdown files.
+
+**Usage:**
+```bash
+# Format a single document summary
+python format_summary_markdown.py timken-v5
+
+# Custom output path
+python format_summary_markdown.py timken-v5 --output reports/timken.md
+
+# Executive summary only (no page details)
+python format_summary_markdown.py timken-v5 --no-pages
+
+# Format all documents in batch
+python format_summary_markdown.py --all --output-dir markdown_summaries/
+```
+
+**Output includes:**
+- Status badges (✅ Success / ❌ Failed)
+- Executive summary from document-level analysis
+- Page-by-page summaries with statistics
+- Metadata (page counts, blob paths, timestamps)
+- Error details for failed processing
+
+---
+
 ## 📚 Documentation
 
 - [Architecture Overview](./docs/architecture.md)
 - [Function Flow](./docs/function-flow.md)
+- [Prompts & Summarization](./docs/prompts.md)
 - [Local Setup](./docs/setup.md)
 - [Deployment Guide](./docs/deployment.md)
 - [Troubleshooting](./docs/troubleshooting.md)
